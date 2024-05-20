@@ -10,14 +10,19 @@ use crate::models::position::PositionData;
 pub async fn get_open_positions() -> HttpResponse {
     let query: &str = "
         query Positions {
-            positions {
-                id
-                owner
-                underlyingToken
-                underlyingAmount
-                debtToken
-                collateralId
-                collateralToken
+            positions(where: {isOpen: true}) {
+                items {
+                  id
+                  owner
+                  underlyingToken
+                  underlyingAmount
+                  debtToken
+                  debtShare
+                  collateralId
+                  collateralToken
+                  collateralSize
+                  isOpen
+                }
             }
         }
     ";
@@ -35,14 +40,19 @@ pub async fn get_position(id: web::Path<String>) -> HttpResponse {
     let query: String = format!(
         "
         query Positions {{
-            positions(where: {{id: {}}}) {{
-                id
-                owner
-                underlyingToken
-                underlyingAmount
-                debtToken
-                collateralId
-                collateralToken
+            positions(where: {{id: \"{}\"}}) {{
+                items {{
+                    id
+                    owner
+                    underlyingToken
+                    underlyingAmount
+                    debtToken
+                    debtShare
+                    collateralId
+                    collateralToken
+                    collateralSize
+                    isOpen
+                }}
             }}
         }}
         ",
@@ -63,13 +73,18 @@ pub async fn get_users_positions(user: web::Path<String>) -> HttpResponse {
         "
         query Positions {{
             positions(where: {{owner: \"{}\"}}) {{
-                id
-                owner
-                underlyingToken
-                underlyingAmount
-                debtToken
-                collateralId
-                collateralToken
+                items {{
+                    id
+                    owner
+                    underlyingToken
+                    underlyingAmount
+                    debtToken
+                    debtShare
+                    collateralId
+                    collateralToken
+                    collateralSize
+                    isOpen
+                }}
             }}
         }}
         ",
@@ -86,7 +101,7 @@ pub async fn get_users_positions(user: web::Path<String>) -> HttpResponse {
 /// Calls the database using a provided GraphQl query and formats data that can be used
 /// as an appropriate response.
 async fn call_and_unwrap(graph_ql_query: &str) -> PositionData {
-    let endpoint: &str = "https://blueberry-backend-mainnet.up.railway.app/";
+    let endpoint: &str = "http://localhost:42069";
     let client: Client = Client::new(endpoint);
 
     let response: Option<PositionData> =
@@ -94,6 +109,6 @@ async fn call_and_unwrap(graph_ql_query: &str) -> PositionData {
 
     match response {
         Some(x) => x,
-        None => panic!("Server Error"),
+        None => panic!("Invalid data fetched"),
     }
 }
