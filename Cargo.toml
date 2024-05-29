@@ -1,0 +1,16 @@
+[package]
+name = "blueberry-v1-api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4.6.0"
+alloy = { git = "https://github.com/alloy-rs/alloy", version = "0.1.0", features = [
+    "default",
+    "sol-types"
+]}
+dotenv = "0.15.0"
+gql_client = "1.0.7"
+serde = { version = "1.0.202", features = ["derive"] }
