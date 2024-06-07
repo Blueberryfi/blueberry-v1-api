@@ -1,6 +1,7 @@
 use actix_web::{get, web, HttpResponse};
 use alloy::primitives::{Uint, U160, U256};
 use alloy::rpc::types::eth::BlockId;
+use gql_client::GraphQLError;
 use std::str::FromStr;
 
 use crate::api::positions::query_user_positions;
@@ -35,13 +36,41 @@ pub async fn get_weeth_effective_balances(
             return HttpResponse::InternalServerError().body(format!("Ethereum Call Error: {}", e))
         }
     };
-
+    // TODO: Get position count and make sure that the position Id isnt greater than the count
     for addr in addresses.iter() {
         let mut user_balance: Uint<256, 4> = "0".parse().unwrap();
-        let position_data: PositionData =
-            query_user_positions(config.clone(), addr.to_string().into()).await;
-        for position in position_data.positions.items.into_iter() {
-            let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
+        let position_data: Result<std::option::Option<PositionData>, GraphQLError> =
+            query_user_positions(&config.ponder_client, addr.to_string().into()).await;
+
+        let positions = match position_data {
+            Ok(Some(x)) => x.positions,
+            Ok(None) => {
+                return HttpResponse::NoContent().finish();
+            }
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .body(format!("Internal Server Error: {}", e));
+            }
+        };
+        let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
+
+        let next_position_id_call = blueberry_bank
+            .getNextPositionId()
+            .block(block_id)
+            .call()
+            .await;
+        let next_position_id = match next_position_id_call {
+            Ok(x) => x._0,
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .body(format!("Ethereum Call Error: {}", e))
+            }
+        };
+        for position in positions.items.into_iter() {
+            if U256::from_str(&position.id).unwrap() >= next_position_id {
+                break;
+            }
+
             if position.collateralToken == WERC20.to_string() {
                 if position.collateralId == get_werc20_id_from_token(WEETH.to_string()).to_string()
                 {
