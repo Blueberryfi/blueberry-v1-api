@@ -21,37 +21,43 @@ pub async fn get_weeth_effective_balances(
     addresses: web::Path<Vec<String>>,
 ) -> HttpResponse {
     let mut user_balances: Vec<UserBalance> = vec![];
-
-    let weeth = IERC20::new(WEETH, config.provider.clone());
-    let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
-
     let block_id: BlockId = BlockId::from(block.to_be());
-    // Get the balance of weETH in the Blueberry Bank
-    let protocol_balance: Uint<256, 4> = weeth
+    let weeth = IERC20::new(WEETH, config.provider.clone());
+    let balance_call = weeth
         .balanceOf(BLUEBERRY_BANK)
         .block(block_id.clone())
         .call()
-        .await
-        .unwrap()
-        .balance;
+        .await;
 
-    // For each address passed, get the weETH position size
+    let protocol_balance: Uint<256, 4> = match balance_call {
+        Ok(x) => x.balance,
+        Err(e) => {
+            return HttpResponse::InternalServerError().body(format!("Ethereum Call Error: {}", e))
+        }
+    };
+
     for addr in addresses.iter() {
         let mut user_balance: Uint<256, 4> = "0".parse().unwrap();
         let position_data: PositionData =
             query_user_positions(config.clone(), addr.to_string().into()).await;
         for position in position_data.positions.items.into_iter() {
+            let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
             if position.collateralToken == WERC20.to_string() {
                 if position.collateralId == get_werc20_id_from_token(WEETH.to_string()).to_string()
                 {
-                    let collateral_size: Uint<256, 4> = blueberry_bank
+                    let collateral_size_call = blueberry_bank
                         .getPositionInfo(U256::from_str(&position.id).unwrap())
                         .block(block_id)
                         .call()
-                        .await
-                        .unwrap()
-                        ._0
-                        .collateralSize;
+                        .await;
+
+                    let collateral_size = match collateral_size_call {
+                        Ok(x) => x._0.collateralSize,
+                        Err(e) => {
+                            return HttpResponse::InternalServerError()
+                                .body(format!("Ethereum Call Error: {}", e))
+                        }
+                    };
 
                     user_balance += collateral_size;
                 }
