@@ -3,24 +3,24 @@ use serde::{Deserialize, Serialize};
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Position {
-    id: String,
-    owner: String,
-    underlyingToken: String,
-    underlyingAmount: String,
-    debtToken: String,
-    debtShare: String,
-    collateralId: String,
-    collateralToken: String,
-    collateralSize: String,
-    isOpen: bool,
+    pub id: String,
+    pub owner: String,
+    pub underlyingToken: String,
+    pub underlyingAmount: String,
+    pub debtToken: String,
+    pub debtShare: String,
+    pub collateralId: String,
+    pub collateralToken: String,
+    pub collateralSize: String,
+    pub isOpen: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PositionItems {
-    items: Vec<Position>,
+    pub items: Vec<Position>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PositionData {
-    positions: PositionItems,
+    pub positions: PositionItems,
 }

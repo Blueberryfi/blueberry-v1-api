@@ -1,4 +1,5 @@
 use actix_web::{web, App, HttpServer};
+use api::points::get_weeth_effective_balances;
 
 use crate::{
     api::positions::{get_open_positions, get_position, get_users_positions},
@@ -7,6 +8,7 @@ use crate::{
 };
 
 mod api;
+mod contracts;
 mod models;
 mod utils;
 
@@ -23,6 +25,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_open_positions)
             .service(get_position)
             .service(get_users_positions)
+            .service(get_weeth_effective_balances)
     })
     .bind((address, port))?
     .workers(4)

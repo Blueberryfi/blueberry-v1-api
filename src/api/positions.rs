@@ -97,6 +97,41 @@ pub async fn get_users_positions(
     call_and_unwrap(&config.ponder_client, &query).await
 }
 
+pub async fn query_user_positions(
+    config: web::Data<GlobalConfig>,
+    user: web::Path<String>,
+) -> PositionData {
+    let query: String = format!(
+        "
+        query Positions {{
+            positions(where: {{owner: \"{}\"}}) {{
+                items {{
+                    id
+                    owner
+                    underlyingToken
+                    underlyingAmount
+                    debtToken
+                    debtShare
+                    collateralId
+                    collateralToken
+                    collateralSize
+                    isOpen
+                }}
+            }}
+        }}
+        ",
+        user
+    );
+    let response = config
+        .ponder_client
+        .query::<PositionData>(&query)
+        .await
+        .unwrap();
+    match response {
+        Some(response) => response,
+        None => panic!("Error on query"),
+    }
+}
 /// Calls the database using a provided GraphQl query, formats the data and returns a
 /// a valid HTTPResponse
 async fn call_and_unwrap(ponder_client: &Client, graph_ql_query: &str) -> HttpResponse {
