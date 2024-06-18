@@ -14,7 +14,7 @@ use crate::models::{
     points::{EtherfiPoints, UserBalance},
 };
 
-/// Get all open positionss
+/// Get all open positions
 #[get("/points-etherfi/{block}/addresses={addresses}")]
 pub async fn get_weeth_effective_balances(
     config: web::Data<GlobalConfig>,
@@ -23,6 +23,8 @@ pub async fn get_weeth_effective_balances(
 ) -> HttpResponse {
     let mut user_balances: Vec<UserBalance> = vec![];
     let block_id: BlockId = BlockId::from(block.to_be());
+
+    // Get protocol balance
     let weeth = IERC20::new(WEETH, config.provider.clone());
     let balance_call = weeth
         .balanceOf(BLUEBERRY_BANK)
@@ -36,7 +38,24 @@ pub async fn get_weeth_effective_balances(
             return HttpResponse::InternalServerError().body(format!("Ethereum Call Error: {}", e))
         }
     };
-    // TODO: Get position count and make sure that the position Id isnt greater than the count
+
+    // Get the next position ID
+    let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
+
+    let next_position_id_call = blueberry_bank
+        .getNextPositionId()
+        .block(block_id)
+        .call()
+        .await;
+    let next_position_id = match next_position_id_call {
+        Ok(x) => x._0,
+        Err(e) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Ethereum Call Error: {}", e))
+        }
+    };
+
+    // Get the user balance
     for addr in addresses.iter() {
         let mut user_balance: Uint<256, 4> = "0".parse().unwrap();
         let position_data: Result<std::option::Option<PositionData>, GraphQLError> =
@@ -52,20 +71,7 @@ pub async fn get_weeth_effective_balances(
                     .body(format!("Internal Server Error: {}", e));
             }
         };
-        let blueberry_bank = IBlueberryBank::new(BLUEBERRY_BANK, config.provider.clone());
 
-        let next_position_id_call = blueberry_bank
-            .getNextPositionId()
-            .block(block_id)
-            .call()
-            .await;
-        let next_position_id = match next_position_id_call {
-            Ok(x) => x._0,
-            Err(e) => {
-                return HttpResponse::InternalServerError()
-                    .body(format!("Ethereum Call Error: {}", e))
-            }
-        };
         for position in positions.items.into_iter() {
             if U256::from_str(&position.id).unwrap() >= next_position_id {
                 break;
@@ -80,7 +86,7 @@ pub async fn get_weeth_effective_balances(
                         .call()
                         .await;
 
-                    let collateral_size = match collateral_size_call {
+                    let collateral_size: Uint<256, 4> = match collateral_size_call {
                         Ok(x) => x._0.collateralSize,
                         Err(e) => {
                             return HttpResponse::InternalServerError()
@@ -92,6 +98,7 @@ pub async fn get_weeth_effective_balances(
                 }
             }
         }
+
         let _ = protocol_balance.checked_sub(user_balance);
 
         user_balances.push(UserBalance {
