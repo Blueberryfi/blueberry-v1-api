@@ -1,0 +1,11 @@
+# Specify Rust version
+FROM rust:1.77.2
+
+# Copy files to docker image
+COPY ./ ./
+
+# Build the program
+RUN cargo build --release
+
+# Run the program
+CMD ["./target/release/blueberry-v1-api"]
