@@ -5,6 +5,6 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct GlobalConfig {
-    pub provider: Arc<RootProvider<Http<crate::models::config::reqwest::Client>>>,
+    pub provider: Arc<RootProvider<Http<reqwest::Client>>>,
     pub ponder_client: Client,
 }

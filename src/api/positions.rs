@@ -6,7 +6,6 @@ use crate::models::{config::GlobalConfig, position::PositionData};
 /// Get all open positionss
 #[get("/positions")]
 pub async fn get_open_positions(config: web::Data<GlobalConfig>) -> HttpResponse {
-    println!("Getting query");
     let query: &str = "
         query Positions {
             positions(where: {isOpen: true}) {
@@ -26,16 +25,13 @@ pub async fn get_open_positions(config: web::Data<GlobalConfig>) -> HttpResponse
         }
     ";
 
-    call_and_unwrap(&config.ponder_client, &query).await
+    call_and_unwrap(&config.ponder_client, query).await
 }
 
 /// Get a specific position based on its id
 #[get("/positions/{id}")]
 pub async fn get_position(config: web::Data<GlobalConfig>, id: web::Path<String>) -> HttpResponse {
-    let position_id: i32 = match id.parse() {
-        Ok(x) => x,
-        Err(_) => 0,
-    };
+    let position_id: i32 = id.parse().unwrap_or(0);
 
     if position_id == 0 {
         return HttpResponse::NoContent().body("No Content: Invalid position Id.");
