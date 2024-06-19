@@ -26,7 +26,7 @@ pub fn generate_server_address() -> String {
             if x == "true" {
                 String::from("127.0.0.1")
             } else {
-                parse_env("SERVER_ADDRESS")
+                String::from("0.0.0.0")
             }
         }
         Err(_) => panic!("Config Error: Invalid server address"),

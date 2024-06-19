@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_users_positions)
             .service(get_blb_circulating_supply)
     })
-    .bind(("0.0.0.0", 8080))?
+    .bind((address, port))?
     .workers(4)
     .run()
     .await
