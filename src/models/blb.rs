@@ -1,7 +1,7 @@
 use alloy::primitives::{Address, U256};
 
 use crate::contracts::addresses::{
-    BLB_ADDRESS, BLB_TREASURY, BLUEBERRY_STAKING, CHAINLINK_WALLET, MAGNA_CLAIM_CONTRACT,
+    BLB_ADDRESS, BLB_TREASURY, BLUEBERRY_STAKING, CHAINLINK_WALLET, MAGNA_CLAIM_CONTRACT, MAGNA_VESTING_CONTRACT,
 };
 const ONE_BILLION: u64 = 1_000_000_000;
 const BLB_DECIMALS: u8 = 18;
@@ -23,6 +23,7 @@ impl Blb {
                 BLB_TREASURY,
                 BLUEBERRY_STAKING,
                 MAGNA_CLAIM_CONTRACT,
+                MAGNA_VESTING_CONTRACT,
                 CHAINLINK_WALLET,
             ],
         }
