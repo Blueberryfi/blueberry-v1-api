@@ -1,5 +1,5 @@
 # Specify Rust version
-FROM rust:1.77.2
+FROM rust:1.81
 
 # Copy files to docker image
 COPY ./ ./

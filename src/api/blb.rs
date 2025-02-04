@@ -49,3 +49,25 @@ pub async fn get_blb_circulating_supply(config: web::Data<GlobalConfig>) -> Http
         .content_type("application/json")
         .json(res)
 }
+
+#[get("/blb/total_supply")]
+pub async fn get_blb_total_supply() -> HttpResponse {
+    let blb: Blb = Blb::new();
+
+    let total_supply_scaled: String =
+        match format_units(blb.total_supply, blb.token_decimals) {
+            Ok(x) => x,
+            Err(e) => {
+                return HttpResponse::InternalServerError()
+                    .body(format!("Ethereum Call Error: {}", e))
+            }
+        };
+
+    let res: SingletonReturn = SingletonReturn {
+        result: total_supply_scaled,
+    };
+
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .json(res)
+}

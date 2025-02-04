@@ -19,3 +19,5 @@ An free to use API for Blueberry V1. Hosted at `api.blueberry.garden/`
 
 - GET: `/blb/circulating_supply`
   - Returns the circulating supply of BLB.
+- GET: `/blb/total_supply`
+  - Returns the total supply of BLB.
