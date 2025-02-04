@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 actix-cors = "0.7.0"
 actix-web = "4.6.0"
-alloy = { git = "https://github.com/alloy-rs/alloy", version = "0.1.1", features = [
+alloy = { version = "0.1.1", features = [
     "default",
     "sol-types",
     "providers",
